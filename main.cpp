@@ -8,6 +8,75 @@
 #include <sstream>
 #include <iomanip>
 
+std::string formatNumber(double number)
+{
+    std::ostringstream out;
+
+    if (number >= 1'000'000'000'000.0)
+    {
+        out << std::fixed << std::setprecision(1)
+            << number / 1'000'000'000'000.0 << "T";
+    }
+    else if (number >= 1'000'000'000.0)
+    {
+        out << std::fixed << std::setprecision(1)
+            << number / 1'000'000'000.0 << "B";
+    }
+    else if (number >= 1'000'000.0)
+    {
+        out << std::fixed << std::setprecision(1)
+            << number / 1'000'000.0 << "M";
+    }
+    else if (number >= 1'000.0)
+    {
+        out << std::fixed << std::setprecision(1)
+            << number / 1'000.0 << "K";
+    }
+    else
+    {
+        out << std::fixed << std::setprecision(0) << number;
+    }
+
+    return out.str();
+}
+
+double parseNumber(const std::string& text)
+{
+    if (text.empty())
+        return 0;
+
+    char suffix = text.back();
+
+    double number;
+
+    try
+    {
+        number = std::stod(text.substr(0, text.size() - 1));
+    }
+    catch (...)
+    {
+        return 0;
+    }
+
+    switch (suffix)
+    {
+        case 'K':
+            return number * 1'000.0;
+
+        case 'M':
+            return number * 1'000'000.0;
+
+        case 'B':
+            return number * 1'000'000'000.0;
+
+        case 'T':
+            return number * 1'000'000'000'000.0;
+
+        default:
+            return std::stod(text);
+    }
+}
+
 void saveGame(double apples, double aps, double apc, double ajc, double atc) {
 
     nlohmann::json save;
@@ -79,6 +148,12 @@ int main() {
         return 1;
     }
 
+    sf::Texture upgbtnTexture;
+
+    if (!upgbtnTexture.loadFromFile("assets/upg-button.png")) {
+        return 1;
+    }
+
     //appel
 
     sf::Sprite apple(appleTexture);
@@ -91,10 +166,10 @@ int main() {
     );
 
     apple.setScale({scale, scale});
-    apple.setPosition({960.f, 640.f});
+    apple.setPosition({960.f, 720.f});
     apple.setOrigin({
         apple.getLocalBounds().size.x / 2.f,
-        apple.getLocalBounds().size.y / 2.f
+        apple.getLocalBounds().size.y / 2.f - 80.f
     });
 
     //menu
@@ -117,7 +192,7 @@ int main() {
 
     //menu buttons
 
-    sf::RectangleShape clickbtn1({360.f, 80.f});
+    sf::Sprite clickbtn1(upgbtnTexture);
     clickbtn1.setPosition({1630.f, 150.f});
     clickbtn1.setOrigin({180.f, 40.f});
 
@@ -126,7 +201,7 @@ int main() {
     cb1Text.setFillColor(sf::Color::Black);
     cb1Text.setPosition({1472.f, 132.f});
 
-    sf::RectangleShape secbtn1({360.f, 80.f});
+    sf::Sprite secbtn1(upgbtnTexture);
     secbtn1.setPosition({1630.f, 300.f});
     secbtn1.setOrigin({180.f, 40.f});
 
