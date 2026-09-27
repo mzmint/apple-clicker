@@ -13,12 +13,20 @@ FetchContent_Declare(
         GIT_TAG 3.1.0
 )
 
-FetchContent_MakeAvailable(SFML)
+FetchContent_Declare(
+        json
+        GIT_REPOSITORY https://github.com/nlohmann/json.git
+        GIT_TAG v3.12.0
+)
+
+FetchContent_MakeAvailable(SFML json)
 
 add_executable(Apple_Clicker
         main.cpp
+        app.rc
 )
 
 target_link_libraries(Apple_Clicker PRIVATE
         SFML::Graphics
+        nlohmann_json::nlohmann_json
 )
