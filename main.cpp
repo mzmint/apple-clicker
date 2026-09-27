@@ -37,6 +37,12 @@ int main() {
         return 1;
     }
 
+    sf::Texture menuTexture;
+
+    if (!menuTexture.loadFromFile("assets/menu.png")) {
+        return 1;
+    }
+
     //appel
 
     sf::Sprite apple(appleTexture);
@@ -54,6 +60,25 @@ int main() {
         apple.getLocalBounds().size.x / 2.f,
         apple.getLocalBounds().size.y / 2.f
     });
+
+    //menu
+
+    sf::Sprite menu(menuTexture);
+
+    sf::Vector2u textureSizeMenu = menuTexture.getSize();
+
+    float menuscale = std::min(
+        500.f / textureSizeMenu.x,
+        1040.f / textureSizeMenu.y
+    );
+
+    menu.setScale({menuscale, menuscale});
+    menu.setPosition({1630.f, 540.f});
+    menu.setOrigin({
+        menu.getLocalBounds().size.x / 2.f,
+        menu.getLocalBounds().size.y / 2.f
+    });
+
 
     //text
 
@@ -102,6 +127,7 @@ int main() {
 
         window.draw(apple);
         window.draw(appleText);
+        window.draw(menu);
 
         window.display();
     }
