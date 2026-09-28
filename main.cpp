@@ -78,7 +78,7 @@ double parseNumber(const std::string& text)
     }
 }
 
-void saveGame(double apples, double aps, double apc, double ajc, double atc, double afc) {
+void saveGame(double apples, double aps, double apc, double ajc, double atc, double afc, bool isdiagon, int ftf) {
 
     nlohmann::json save;
 
@@ -88,13 +88,15 @@ void saveGame(double apples, double aps, double apc, double ajc, double atc, dou
     save["ajc"] = ajc;
     save["atc"] = atc;
     save["afc"] = afc;
+    save["isdiagon"] = isdiagon;
+    save["ftf"] = ftf;
 
     std::ofstream file("save.json");
 
     file << save.dump(4);
 }
 
-void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc, double& afc)
+void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc, double& afc, bool& isdiagon, int& ftf)
 {
     std::ifstream file("save.json");
 
@@ -111,6 +113,8 @@ void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc
     ajc = save.value("ajc", 10.0);
     atc = save.value("atc", 20.0);
     afc = save.value("afc", 400.0);
+    isdiagon = save.value("isdiagon", false);
+    ftf = save.value("ftf", 2);
 }
 
 int main() {
@@ -132,8 +136,10 @@ int main() {
     double ajc = 10;
     double atc = 20;
     double afc = 400;
+    bool isdiagon = false;
+    int ftf = 2;
 
-    loadGame(apples, aps, apc, ajc, atc, afc);
+    loadGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf);
 
     sf::RenderWindow window(
         sf::VideoMode({1920, 1080}),
@@ -163,6 +169,12 @@ int main() {
     sf::Texture upgbtnTexture;
 
     if (!upgbtnTexture.loadFromFile("assets/upg-button.png")) {
+        return 1;
+    }
+
+    sf::Texture dlgTexture;
+
+    if (!dlgTexture.loadFromFile("assets/dialog.png")) {
         return 1;
     }
 
@@ -201,6 +213,16 @@ int main() {
         menu.getLocalBounds().size.x / 2.f,
         menu.getLocalBounds().size.y / 2.f
     });
+
+    //dialogs/ach
+    sf::Sprite dialog(dlgTexture);
+    dialog.setPosition({960.f, 840.f});
+    dialog.setOrigin({750.f, 100.f});
+
+    sf::Text dlgText(font);
+    dlgText.setCharacterSize(50);
+    dlgText.setFillColor(sf::Color::Black);
+    dlgText.setPosition({240.f, 810.f});
 
     //menu buttons
 
@@ -267,33 +289,118 @@ int main() {
     std::ostringstream stream6;
     stream6 << std::fixed << std::setprecision(0) << afc;
     sb2Text.setString("Apple Farm: " + stream6.str());
-
+    dlgText.setString("btw the apple's name is Appel");
 
     while (window.isOpen()) {
         while (auto event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
-                saveGame(apples, aps, apc, ajc, atc, afc);
+                saveGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf);
                 window.close();
             }
 
-            if (const auto* mouse =
-                    event->getIf<sf::Event::MouseButtonPressed>())
-            {
-                if (mouse->button == sf::Mouse::Button::Left) {
-                    sf::Vector2f mousePos = {
-                        static_cast<float>(mouse->position.x),
-                        static_cast<float>(mouse->position.y)
-                    };
+            if (!isdiagon) {
+                if (const auto* mouse =
+                        event->getIf<sf::Event::MouseButtonPressed>())
+                {
+                    if (mouse->button == sf::Mouse::Button::Left) {
+                        sf::Vector2f mousePos = {
+                            static_cast<float>(mouse->position.x),
+                            static_cast<float>(mouse->position.y)
+                        };
 
-                    if (apple.getGlobalBounds().contains(mousePos)) {
-                        apples += apc;
-                        std::ostringstream stream;
-                        stream << std::fixed << std::setprecision(0) << apples;
-                        appleText.setString("Apples: " + stream.str());
+                        if (apple.getGlobalBounds().contains(mousePos)) {
+                            apples += apc;
+                            std::ostringstream stream;
+                            stream << std::fixed << std::setprecision(0) << apples;
+                            appleText.setString("Apples: " + stream.str());
+                        }
+                    }
+                }
+
+                if (const auto* mouse =
+                        event->getIf<sf::Event::MouseButtonPressed>())
+                {
+                    if (mouse->button == sf::Mouse::Button::Left) {
+                        sf::Vector2f mousePos = {
+                            static_cast<float>(mouse->position.x),
+                            static_cast<float>(mouse->position.y)
+                        };
+
+                        if (clickbtn1.getGlobalBounds().contains(mousePos) && apples >= ajc) {
+                            apc ++;
+                            apples -= ajc;
+                            ajc *= 2;
+                            std::ostringstream stream;
+                            stream << std::fixed << std::setprecision(0) << apples;
+                            appleText.setString("Apples: " + stream.str());
+                            std::ostringstream stream2;
+                            stream2 << std::fixed << std::setprecision(0) << apc;
+                            apcText.setString("Apples per click: " + stream2.str());
+                            std::ostringstream stream3;
+                            stream3 << std::fixed << std::setprecision(0) << ajc;
+                            cb1Text.setString("Apple Juice: " + stream3.str());
+                        }
+                    }
+                }
+                if (const auto* mouse =
+                        event->getIf<sf::Event::MouseButtonPressed>())
+                {
+                    if (mouse->button == sf::Mouse::Button::Left) {
+                        sf::Vector2f mousePos = {
+                            static_cast<float>(mouse->position.x),
+                            static_cast<float>(mouse->position.y)
+                        };
+
+                        if (secbtn1.getGlobalBounds().contains(mousePos) && apples >= atc) {
+                            aps ++;
+                            apples -= atc;
+                            atc += 20;
+                            std::ostringstream stream;
+                            stream << std::fixed << std::setprecision(0) << apples;
+                            appleText.setString("Apples: " + stream.str());
+                            std::ostringstream stream2;
+                            stream2 << std::fixed << std::setprecision(0) << atc;
+                            sb1Text.setString("Apple Tree: " + stream2.str());
+                            std::ostringstream stream3;
+                            stream3 << std::fixed << std::setprecision(0) << aps;
+                            apsText.setString("Apples per second: " + stream3.str());
+                        }
+                    }
+                }
+                if (const auto* mouse =
+                        event->getIf<sf::Event::MouseButtonPressed>())
+                {
+                    if (mouse->button == sf::Mouse::Button::Left) {
+                        sf::Vector2f mousePos = {
+                            static_cast<float>(mouse->position.x),
+                            static_cast<float>(mouse->position.y)
+                        };
+
+                        if (secbtn2.getGlobalBounds().contains(mousePos) && apples >= afc) {
+                            if (ftf == 2) {
+                                ftf = 1;
+                            } else if (ftf == 1) {
+                                ftf = 0;
+                            }
+                            if (ftf == 1) {
+                                isdiagon = true;
+                            }
+                            aps += 3;
+                            apples -= afc;
+                            afc += 350;
+                            std::ostringstream stream;
+                            stream << std::fixed << std::setprecision(0) << apples;
+                            appleText.setString("Apples: " + stream.str());
+                            std::ostringstream stream2;
+                            stream2 << std::fixed << std::setprecision(0) << afc;
+                            sb2Text.setString("Apple Farm: " + stream2.str());
+                            std::ostringstream stream3;
+                            stream3 << std::fixed << std::setprecision(0) << aps;
+                            apsText.setString("Apples per second: " + stream3.str());
+                        }
                     }
                 }
             }
-
             if (const auto* mouse =
                     event->getIf<sf::Event::MouseButtonPressed>())
             {
@@ -303,69 +410,8 @@ int main() {
                         static_cast<float>(mouse->position.y)
                     };
 
-                    if (clickbtn1.getGlobalBounds().contains(mousePos) && apples >= ajc) {
-                        apc ++;
-                        apples -= ajc;
-                        ajc *= 2;
-                        std::ostringstream stream;
-                        stream << std::fixed << std::setprecision(0) << apples;
-                        appleText.setString("Apples: " + stream.str());
-                        std::ostringstream stream2;
-                        stream2 << std::fixed << std::setprecision(0) << apc;
-                        apcText.setString("Apples per click: " + stream2.str());
-                        std::ostringstream stream3;
-                        stream3 << std::fixed << std::setprecision(0) << ajc;
-                        cb1Text.setString("Apple Juice: " + stream3.str());
-                    }
-                }
-            }
-            if (const auto* mouse =
-                    event->getIf<sf::Event::MouseButtonPressed>())
-            {
-                if (mouse->button == sf::Mouse::Button::Left) {
-                    sf::Vector2f mousePos = {
-                        static_cast<float>(mouse->position.x),
-                        static_cast<float>(mouse->position.y)
-                    };
-
-                    if (secbtn1.getGlobalBounds().contains(mousePos) && apples >= atc) {
-                        aps ++;
-                        apples -= atc;
-                        atc += 20;
-                        std::ostringstream stream;
-                        stream << std::fixed << std::setprecision(0) << apples;
-                        appleText.setString("Apples: " + stream.str());
-                        std::ostringstream stream2;
-                        stream2 << std::fixed << std::setprecision(0) << atc;
-                        sb1Text.setString("Apple Tree: " + stream2.str());
-                        std::ostringstream stream3;
-                        stream3 << std::fixed << std::setprecision(0) << aps;
-                        apsText.setString("Apples per second: " + stream3.str());
-                    }
-                }
-            }
-            if (const auto* mouse =
-                    event->getIf<sf::Event::MouseButtonPressed>())
-            {
-                if (mouse->button == sf::Mouse::Button::Left) {
-                    sf::Vector2f mousePos = {
-                        static_cast<float>(mouse->position.x),
-                        static_cast<float>(mouse->position.y)
-                    };
-
-                    if (secbtn2.getGlobalBounds().contains(mousePos) && apples >= afc) {
-                        aps += 3;
-                        apples -= afc;
-                        afc += 350;
-                        std::ostringstream stream;
-                        stream << std::fixed << std::setprecision(0) << apples;
-                        appleText.setString("Apples: " + stream.str());
-                        std::ostringstream stream2;
-                        stream2 << std::fixed << std::setprecision(0) << afc;
-                        sb2Text.setString("Apple Farm: " + stream2.str());
-                        std::ostringstream stream3;
-                        stream3 << std::fixed << std::setprecision(0) << aps;
-                        apsText.setString("Apples per second: " + stream3.str());
+                    if (dialog.getGlobalBounds().contains(mousePos) && isdiagon) {
+                        isdiagon = false;
                     }
                 }
             }
@@ -399,6 +445,11 @@ int main() {
         window.draw(sb1Text);
         window.draw(secbtn2);
         window.draw(sb2Text);
+        if (isdiagon) {
+            window.draw(dialog);
+            window.draw(dlgText);
+        }
+
 
         window.display();
     }
