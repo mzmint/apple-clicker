@@ -28,5 +28,6 @@ add_executable(Apple_Clicker
 
 target_link_libraries(Apple_Clicker PRIVATE
         SFML::Graphics
+        SFML::Audio
         nlohmann_json::nlohmann_json
 )

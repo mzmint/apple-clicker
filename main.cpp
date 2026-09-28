@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <nlohmann/json.hpp>
+#include <SFML/Audio.hpp>
 #include <algorithm>
 #include <iostream>
 #include <string>
@@ -77,7 +78,7 @@ double parseNumber(const std::string& text)
     }
 }
 
-void saveGame(double apples, double aps, double apc, double ajc, double atc) {
+void saveGame(double apples, double aps, double apc, double ajc, double atc, double afc) {
 
     nlohmann::json save;
 
@@ -86,13 +87,14 @@ void saveGame(double apples, double aps, double apc, double ajc, double atc) {
     save["apc"] = apc;
     save["ajc"] = ajc;
     save["atc"] = atc;
+    save["afc"] = afc;
 
     std::ofstream file("save.json");
 
     file << save.dump(4);
 }
 
-void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc)
+void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc, double& afc)
 {
     std::ifstream file("save.json");
 
@@ -108,9 +110,18 @@ void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc
     apc = save.value("apc", 1.0);
     ajc = save.value("ajc", 10.0);
     atc = save.value("atc", 20.0);
+    afc = save.value("afc", 400.0);
 }
 
 int main() {
+    sf::Music music;
+
+    if (!music.openFromFile("assets/Appels.mp3")) {
+        return 1;
+    }
+
+    music.setLooping(true);
+    music.play();
 
     sf::Clock clock;
     sf::Clock apsClock;
@@ -120,8 +131,9 @@ int main() {
     double apc = 1;
     double ajc = 10;
     double atc = 20;
+    double afc = 400;
 
-    loadGame(apples, aps, apc, ajc, atc);
+    loadGame(apples, aps, apc, ajc, atc, afc);
 
     sf::RenderWindow window(
         sf::VideoMode({1920, 1080}),
@@ -210,6 +222,16 @@ int main() {
     sb1Text.setFillColor(sf::Color::Black);
     sb1Text.setPosition({1472.f, 282.f});
 
+    sf::Sprite secbtn2(upgbtnTexture);
+    secbtn2.setPosition({1630.f, 450.f});
+    secbtn2.setOrigin({180.f, 40.f});
+
+    sf::Text sb2Text(font);
+    sb2Text.setCharacterSize(32);
+    sb2Text.setFillColor(sf::Color::Black);
+    sb2Text.setPosition({1472.f, 432.f});
+
+
     //text
 
     sf::Text appleText(font);
@@ -242,12 +264,15 @@ int main() {
     std::ostringstream stream5;
     stream5 << std::fixed << std::setprecision(0) << atc;
     sb1Text.setString("Apple Tree: " + stream5.str());
+    std::ostringstream stream6;
+    stream6 << std::fixed << std::setprecision(0) << afc;
+    sb2Text.setString("Apple Farm: " + stream6.str());
 
 
     while (window.isOpen()) {
         while (auto event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
-                saveGame(apples, aps, apc, ajc, atc);
+                saveGame(apples, aps, apc, ajc, atc, afc);
                 window.close();
             }
 
@@ -319,6 +344,31 @@ int main() {
                     }
                 }
             }
+            if (const auto* mouse =
+                    event->getIf<sf::Event::MouseButtonPressed>())
+            {
+                if (mouse->button == sf::Mouse::Button::Left) {
+                    sf::Vector2f mousePos = {
+                        static_cast<float>(mouse->position.x),
+                        static_cast<float>(mouse->position.y)
+                    };
+
+                    if (secbtn2.getGlobalBounds().contains(mousePos) && apples >= afc) {
+                        aps += 3;
+                        apples -= afc;
+                        afc += 350;
+                        std::ostringstream stream;
+                        stream << std::fixed << std::setprecision(0) << apples;
+                        appleText.setString("Apples: " + stream.str());
+                        std::ostringstream stream2;
+                        stream2 << std::fixed << std::setprecision(0) << afc;
+                        sb2Text.setString("Apple Farm: " + stream2.str());
+                        std::ostringstream stream3;
+                        stream3 << std::fixed << std::setprecision(0) << aps;
+                        apsText.setString("Apples per second: " + stream3.str());
+                    }
+                }
+            }
             float time = clock.getElapsedTime().asSeconds();
             float rotation = std::sin(time * 2.f) * 10.f;
             apple.setRotation(sf::degrees(rotation));
@@ -347,6 +397,8 @@ int main() {
         window.draw(cb1Text);
         window.draw(secbtn1);
         window.draw(sb1Text);
+        window.draw(secbtn2);
+        window.draw(sb2Text);
 
         window.display();
     }
