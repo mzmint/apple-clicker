@@ -13,28 +13,16 @@ std::string formatNumber(double number)
 {
     std::ostringstream out;
 
-    if (number >= 1'000'000'000'000.0)
-    {
+    if (number >= 1'000'000'000'000.0) {
         out << std::fixed << std::setprecision(1)
             << number / 1'000'000'000'000.0 << "T";
-    }
-    else if (number >= 1'000'000'000.0)
-    {
+    } else if (number >= 1'000'000'000.0) {
         out << std::fixed << std::setprecision(1)
             << number / 1'000'000'000.0 << "B";
-    }
-    else if (number >= 1'000'000.0)
-    {
+    } else if (number >= 1'000'000.0) {
         out << std::fixed << std::setprecision(1)
             << number / 1'000'000.0 << "M";
-    }
-    else if (number >= 1'000.0)
-    {
-        out << std::fixed << std::setprecision(1)
-            << number / 1'000.0 << "K";
-    }
-    else
-    {
+    } else {
         out << std::fixed << std::setprecision(0) << number;
     }
 
@@ -59,26 +47,19 @@ double parseNumber(const std::string& text)
         return 0;
     }
 
-    switch (suffix)
-    {
-        case 'K':
-            return number * 1'000.0;
-
+    switch (suffix) {
         case 'M':
             return number * 1'000'000.0;
-
         case 'B':
             return number * 1'000'000'000.0;
-
         case 'T':
             return number * 1'000'000'000'000.0;
-
         default:
             return std::stod(text);
     }
 }
 
-void saveGame(double apples, double aps, double apc, double ajc, double atc, double afc, bool isdiagon, int ftf) {
+void saveGame(double apples, double aps, double apc, double ajc, double atc, double afc, bool isdiagon, int ftf, double apiec) {
 
     nlohmann::json save;
 
@@ -90,13 +71,14 @@ void saveGame(double apples, double aps, double apc, double ajc, double atc, dou
     save["afc"] = afc;
     save["isdiagon"] = isdiagon;
     save["ftf"] = ftf;
+    save["apiec"] = apiec;
 
     std::ofstream file("save.json");
 
     file << save.dump(4);
 }
 
-void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc, double& afc, bool& isdiagon, int& ftf)
+void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc, double& afc, bool& isdiagon, int& ftf, double& apiec)
 {
     std::ifstream file("save.json");
 
@@ -115,6 +97,7 @@ void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc
     afc = save.value("afc", 400.0);
     isdiagon = save.value("isdiagon", false);
     ftf = save.value("ftf", 2);
+    apiec = save.value("apiec", 1600);
 }
 
 int main() {
@@ -136,10 +119,11 @@ int main() {
     double ajc = 10;
     double atc = 20;
     double afc = 400;
+    double apiec = 1600;
     bool isdiagon = false;
     int ftf = 2;
 
-    loadGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf);
+    loadGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, apiec);
 
     sf::RenderWindow window(
         sf::VideoMode({1920, 1080}),
@@ -177,6 +161,23 @@ int main() {
     if (!dlgTexture.loadFromFile("assets/dialog.png")) {
         return 1;
     }
+
+    sf::Texture bgTexture;
+
+    if (!bgTexture.loadFromFile("assets/background.png")) {
+        return 1;
+    }
+
+    sf::Sprite bg(bgTexture);
+
+    sf::Vector2u bgtextureSize = bgTexture.getSize();
+
+    float bgscale = std::min(
+        1920.f / bgtextureSize.x,
+        1080.f / bgtextureSize.y
+    );
+
+    bg.setScale({bgscale, bgscale});
 
     //appel
 
@@ -253,6 +254,15 @@ int main() {
     sb2Text.setFillColor(sf::Color::Black);
     sb2Text.setPosition({1472.f, 432.f});
 
+    sf::Sprite clickbtn2(upgbtnTexture);
+    clickbtn2.setPosition({1630.f, 600.f});
+    clickbtn2.setOrigin({180.f, 40.f});
+
+    sf::Text cb2Text(font);
+    cb2Text.setCharacterSize(32);
+    cb2Text.setFillColor(sf::Color::Black);
+    cb2Text.setPosition({1472.f, 582.f});
+
 
     //text
 
@@ -271,9 +281,7 @@ int main() {
     apcText.setFillColor(sf::Color::Black);
     apcText.setPosition({50.f, 190.f});
 
-    std::ostringstream stream;
-    stream << std::fixed << std::setprecision(0) << apples;
-    appleText.setString("Apples: " + stream.str());
+    appleText.setString("Apples: " + formatNumber(apples));
     std::ostringstream stream2;
     stream2 << std::fixed << std::setprecision(0) << apc;
     apcText.setString("Apples per click: " + stream2.str());
@@ -289,12 +297,15 @@ int main() {
     std::ostringstream stream6;
     stream6 << std::fixed << std::setprecision(0) << afc;
     sb2Text.setString("Apple Farm: " + stream6.str());
+    std::ostringstream stream7;
+    stream7 << std::fixed << std::setprecision(0) << apiec;
+    cb2Text.setString("Apple Pie: " + stream7.str());
     dlgText.setString("btw the apple's name is Appel");
 
     while (window.isOpen()) {
         while (auto event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
-                saveGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf);
+                saveGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, apiec);
                 window.close();
             }
 
@@ -310,9 +321,7 @@ int main() {
 
                         if (apple.getGlobalBounds().contains(mousePos)) {
                             apples += apc;
-                            std::ostringstream stream;
-                            stream << std::fixed << std::setprecision(0) << apples;
-                            appleText.setString("Apples: " + stream.str());
+                            appleText.setString("Apples: " + formatNumber(apples));
                         }
                     }
                 }
@@ -330,9 +339,7 @@ int main() {
                             apc ++;
                             apples -= ajc;
                             ajc *= 2;
-                            std::ostringstream stream;
-                            stream << std::fixed << std::setprecision(0) << apples;
-                            appleText.setString("Apples: " + stream.str());
+                            appleText.setString("Apples: " + formatNumber(apples));
                             std::ostringstream stream2;
                             stream2 << std::fixed << std::setprecision(0) << apc;
                             apcText.setString("Apples per click: " + stream2.str());
@@ -355,9 +362,7 @@ int main() {
                             aps ++;
                             apples -= atc;
                             atc += 20;
-                            std::ostringstream stream;
-                            stream << std::fixed << std::setprecision(0) << apples;
-                            appleText.setString("Apples: " + stream.str());
+                            appleText.setString("Apples: " + formatNumber(apples));
                             std::ostringstream stream2;
                             stream2 << std::fixed << std::setprecision(0) << atc;
                             sb1Text.setString("Apple Tree: " + stream2.str());
@@ -388,15 +393,36 @@ int main() {
                             aps += 3;
                             apples -= afc;
                             afc += 350;
-                            std::ostringstream stream;
-                            stream << std::fixed << std::setprecision(0) << apples;
-                            appleText.setString("Apples: " + stream.str());
+                            appleText.setString("Apples: " + formatNumber(apples));
                             std::ostringstream stream2;
                             stream2 << std::fixed << std::setprecision(0) << afc;
                             sb2Text.setString("Apple Farm: " + stream2.str());
                             std::ostringstream stream3;
                             stream3 << std::fixed << std::setprecision(0) << aps;
                             apsText.setString("Apples per second: " + stream3.str());
+                        }
+                    }
+                }
+                if (const auto* mouse =
+                        event->getIf<sf::Event::MouseButtonPressed>())
+                {
+                    if (mouse->button == sf::Mouse::Button::Left) {
+                        sf::Vector2f mousePos = {
+                            static_cast<float>(mouse->position.x),
+                            static_cast<float>(mouse->position.y)
+                        };
+
+                        if (clickbtn2.getGlobalBounds().contains(mousePos) && apples >= apiec) {
+                            apc += 5;
+                            apples -= apiec;
+                            apiec *= 2.5;
+                            appleText.setString("Apples: " + formatNumber(apples));
+                            std::ostringstream stream2;
+                            stream2 << std::fixed << std::setprecision(0) << apc;
+                            apcText.setString("Apples per click: " + stream2.str());
+                            std::ostringstream stream7;
+                            stream7 << std::fixed << std::setprecision(0) << apiec;
+                            cb2Text.setString("Apple Pie: " + stream7.str());
                         }
                     }
                 }
@@ -421,9 +447,7 @@ int main() {
         }
         if (apsClock.getElapsedTime().asSeconds() >= 1.f) {
             apples += aps;
-            std::ostringstream stream;
-            stream << std::fixed << std::setprecision(0) << apples;
-            appleText.setString("Apples: " + stream.str());
+            appleText.setString("Apples: " + formatNumber(apples));
             apsClock.restart();
         }
 
@@ -434,6 +458,7 @@ int main() {
 
         window.clear(sf::Color(200, 200, 200));
 
+        window.draw(bg);
         window.draw(apple);
         window.draw(appleText);
         window.draw(apsText);
@@ -445,6 +470,8 @@ int main() {
         window.draw(sb1Text);
         window.draw(secbtn2);
         window.draw(sb2Text);
+        window.draw(clickbtn2);
+        window.draw(cb2Text);
         if (isdiagon) {
             window.draw(dialog);
             window.draw(dlgText);

@@ -31,3 +31,27 @@ target_link_libraries(Apple_Clicker PRIVATE
         SFML::Audio
         nlohmann_json::nlohmann_json
 )
+
+if(WIN32)
+    add_custom_command(TARGET Apple_Clicker POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:SFML::Graphics>
+            $<TARGET_FILE_DIR:Apple_Clicker>
+
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:SFML::Window>
+            $<TARGET_FILE_DIR:Apple_Clicker>
+
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:SFML::System>
+            $<TARGET_FILE_DIR:Apple_Clicker>
+
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:SFML::Audio>
+            $<TARGET_FILE_DIR:Apple_Clicker>
+
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_SOURCE_DIR}/assets"
+            "$<TARGET_FILE_DIR:Apple_Clicker>/assets"
+    )
+endif()
