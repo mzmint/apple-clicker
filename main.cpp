@@ -59,7 +59,7 @@ double parseNumber(const std::string& text)
     }
 }
 
-void saveGame(double apples, double aps, double apc, double ajc, double atc, double afc, bool isdiagon, int ftf, double apiec) {
+void saveGame(double apples, double aps, double apc, double ajc, double atc, double afc, bool isdiagon, int ftf, int ftt, double apiec) {
 
     nlohmann::json save;
 
@@ -71,6 +71,7 @@ void saveGame(double apples, double aps, double apc, double ajc, double atc, dou
     save["afc"] = afc;
     save["isdiagon"] = isdiagon;
     save["ftf"] = ftf;
+    save["ftt"] = ftt;
     save["apiec"] = apiec;
 
     std::ofstream file("save.json");
@@ -78,7 +79,7 @@ void saveGame(double apples, double aps, double apc, double ajc, double atc, dou
     file << save.dump(4);
 }
 
-void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc, double& afc, bool& isdiagon, int& ftf, double& apiec)
+void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc, double& afc, bool& isdiagon, int& ftf, int& ftt, double& apiec)
 {
     std::ifstream file("save.json");
 
@@ -97,6 +98,7 @@ void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc
     afc = save.value("afc", 400.0);
     isdiagon = save.value("isdiagon", false);
     ftf = save.value("ftf", 2);
+    ftt = save.value("ftt", 2);
     apiec = save.value("apiec", 1600);
 }
 
@@ -112,6 +114,7 @@ int main() {
 
     sf::Clock clock;
     sf::Clock apsClock;
+    sf::Clock dlgClock;
 
     double apples = 0;
     double aps = 0;
@@ -122,8 +125,9 @@ int main() {
     double apiec = 1600;
     bool isdiagon = false;
     int ftf = 2;
+    int ftt = 2;
 
-    loadGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, apiec);
+    loadGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, ftt, apiec);
 
     sf::RenderWindow window(
         sf::VideoMode({1920, 1080}),
@@ -163,8 +167,12 @@ int main() {
     }
 
     sf::Texture bgTexture;
+    sf::Texture bg2Texture;
+    sf::Texture bg3Texture;
 
-    if (!bgTexture.loadFromFile("assets/background.png")) {
+    if (!bgTexture.loadFromFile("assets/background1.png") ||
+    !bg2Texture.loadFromFile("assets/background2.png") ||
+    !bg3Texture.loadFromFile("assets/background3.png")) {
         return 1;
     }
 
@@ -217,13 +225,13 @@ int main() {
 
     //dialogs/ach
     sf::Sprite dialog(dlgTexture);
-    dialog.setPosition({960.f, 840.f});
+    dialog.setPosition({960.f, 1080.f});
     dialog.setOrigin({750.f, 100.f});
 
     sf::Text dlgText(font);
     dlgText.setCharacterSize(50);
     dlgText.setFillColor(sf::Color::Black);
-    dlgText.setPosition({240.f, 810.f});
+    dlgText.setPosition({240.f, 1050.f});
 
     //menu buttons
 
@@ -305,7 +313,7 @@ int main() {
     while (window.isOpen()) {
         while (auto event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
-                saveGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, apiec);
+                saveGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, ftt, apiec);
                 window.close();
             }
 
@@ -359,6 +367,16 @@ int main() {
                         };
 
                         if (secbtn1.getGlobalBounds().contains(mousePos) && apples >= atc) {
+                            if (ftf == 2) {
+                                if (ftt == 2) {
+                                    ftt = 1;
+                                } else if (ftt == 1) {
+                                    ftt = 0;
+                                }
+                                if (ftt == 1) {
+                                    bg.setTexture(bg2Texture);
+                                }
+                            }
                             aps ++;
                             apples -= atc;
                             atc += 20;
@@ -388,7 +406,9 @@ int main() {
                                 ftf = 0;
                             }
                             if (ftf == 1) {
+                                dlgClock.restart();
                                 isdiagon = true;
+                                bg.setTexture(bg3Texture);
                             }
                             aps += 3;
                             apples -= afc;
@@ -473,6 +493,19 @@ int main() {
         window.draw(clickbtn2);
         window.draw(cb2Text);
         if (isdiagon) {
+            float ddt = dlgClock.restart().asSeconds();
+            float speed = 1200.f;
+
+            sf::Vector2f target = {960.f, 800.f};
+            sf::Vector2f pos = dialog.getPosition();
+
+            if (pos.y > target.y) {
+                float movement = speed * ddt;
+                if (pos.y - movement < target.y)
+                    movement = pos.y - target.y;
+                dialog.move({0.f, -movement});
+                dlgText.move({0.f, -movement});
+            }
             window.draw(dialog);
             window.draw(dlgText);
         }
