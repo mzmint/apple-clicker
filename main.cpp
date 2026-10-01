@@ -59,7 +59,7 @@ double parseNumber(const std::string& text)
     }
 }
 
-void saveGame(double apples, double aps, double apc, double ajc, double atc, double afc, bool isdiagon, int ftf, int ftt, double apiec) {
+void saveGame(double apples, double aps, double apc, double ajc, double atc, double afc, bool isdiagon, int ftf, int ftt, int ftfc, double apiec, double afcc) {
 
     nlohmann::json save;
 
@@ -72,14 +72,16 @@ void saveGame(double apples, double aps, double apc, double ajc, double atc, dou
     save["isdiagon"] = isdiagon;
     save["ftf"] = ftf;
     save["ftt"] = ftt;
+    save["ftfc"] = ftfc;
     save["apiec"] = apiec;
+    save["afcc"] = afcc;
 
     std::ofstream file("save.json");
 
     file << save.dump(4);
 }
 
-void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc, double& afc, bool& isdiagon, int& ftf, int& ftt, double& apiec)
+void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc, double& afc, bool& isdiagon, int& ftf, int& ftt, int& ftfc, double& apiec, double& afcc)
 {
     std::ifstream file("save.json");
 
@@ -99,7 +101,9 @@ void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc
     isdiagon = save.value("isdiagon", false);
     ftf = save.value("ftf", 2);
     ftt = save.value("ftt", 2);
+    ftfc = save.value("ftfc", 2);
     apiec = save.value("apiec", 1600);
+    apiec = save.value("afcc", 24000);
 }
 
 int main() {
@@ -123,11 +127,13 @@ int main() {
     double atc = 20;
     double afc = 400;
     double apiec = 1600;
+    double afcc = 24000;
     bool isdiagon = false;
     int ftf = 2;
     int ftt = 2;
+    int ftfc = 2;
 
-    loadGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, ftt, apiec);
+    loadGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, ftt, ftfc, apiec, afcc);
 
     sf::RenderWindow window(
         sf::VideoMode({1920, 1080}),
@@ -169,10 +175,12 @@ int main() {
     sf::Texture bgTexture;
     sf::Texture bg2Texture;
     sf::Texture bg3Texture;
+    sf::Texture bg4Texture;
 
     if (!bgTexture.loadFromFile("assets/background1.png") ||
     !bg2Texture.loadFromFile("assets/background2.png") ||
-    !bg3Texture.loadFromFile("assets/background3.png")) {
+    !bg3Texture.loadFromFile("assets/background3.png") ||
+    !bg4Texture.loadFromFile("assets/background4.png")) {
         return 1;
     }
 
@@ -237,39 +245,48 @@ int main() {
 
     sf::Sprite clickbtn1(upgbtnTexture);
     clickbtn1.setPosition({1630.f, 150.f});
-    clickbtn1.setOrigin({180.f, 40.f});
+    clickbtn1.setOrigin({210.f, 40.f});
 
     sf::Text cb1Text(font);
-    cb1Text.setCharacterSize(32);
+    cb1Text.setCharacterSize(30);
     cb1Text.setFillColor(sf::Color::Black);
-    cb1Text.setPosition({1472.f, 132.f});
+    cb1Text.setPosition({1432.f, 122.f});
 
     sf::Sprite secbtn1(upgbtnTexture);
     secbtn1.setPosition({1630.f, 300.f});
-    secbtn1.setOrigin({180.f, 40.f});
+    secbtn1.setOrigin({210.f, 40.f});
 
     sf::Text sb1Text(font);
-    sb1Text.setCharacterSize(32);
+    sb1Text.setCharacterSize(30);
     sb1Text.setFillColor(sf::Color::Black);
-    sb1Text.setPosition({1472.f, 282.f});
+    sb1Text.setPosition({1432.f, 272.f});
 
     sf::Sprite secbtn2(upgbtnTexture);
     secbtn2.setPosition({1630.f, 450.f});
-    secbtn2.setOrigin({180.f, 40.f});
+    secbtn2.setOrigin({210.f, 40.f});
 
     sf::Text sb2Text(font);
-    sb2Text.setCharacterSize(32);
+    sb2Text.setCharacterSize(30);
     sb2Text.setFillColor(sf::Color::Black);
-    sb2Text.setPosition({1472.f, 432.f});
+    sb2Text.setPosition({1432.f, 422.f});
 
     sf::Sprite clickbtn2(upgbtnTexture);
     clickbtn2.setPosition({1630.f, 600.f});
-    clickbtn2.setOrigin({180.f, 40.f});
+    clickbtn2.setOrigin({210.f, 40.f});
 
     sf::Text cb2Text(font);
-    cb2Text.setCharacterSize(32);
+    cb2Text.setCharacterSize(30);
     cb2Text.setFillColor(sf::Color::Black);
-    cb2Text.setPosition({1472.f, 582.f});
+    cb2Text.setPosition({1432.f, 572.f});
+
+    sf::Sprite secbtn3(upgbtnTexture);
+    secbtn3.setPosition({1630.f, 750.f});
+    secbtn3.setOrigin({210.f, 40.f});
+
+    sf::Text sb3Text(font);
+    sb3Text.setCharacterSize(30);
+    sb3Text.setFillColor(sf::Color::Black);
+    sb3Text.setPosition({1432.f, 722.f});
 
 
     //text
@@ -308,12 +325,15 @@ int main() {
     std::ostringstream stream7;
     stream7 << std::fixed << std::setprecision(0) << apiec;
     cb2Text.setString("Apple Pie: " + stream7.str());
+    std::ostringstream stream8;
+    stream8 << std::fixed << std::setprecision(0) << afcc;
+    sb3Text.setString("Apple Factory: " + stream8.str());
     dlgText.setString("btw the apple's name is Appel");
 
     while (window.isOpen()) {
         while (auto event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
-                saveGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, ftt, apiec);
+                saveGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, ftt, ftfc, apiec, afcc);
                 window.close();
             }
 
@@ -367,7 +387,7 @@ int main() {
                         };
 
                         if (secbtn1.getGlobalBounds().contains(mousePos) && apples >= atc) {
-                            if (ftf == 2) {
+                            if (ftf == 2 && ftfc == 2) {
                                 if (ftt == 2) {
                                     ftt = 1;
                                 } else if (ftt == 1) {
@@ -400,15 +420,17 @@ int main() {
                         };
 
                         if (secbtn2.getGlobalBounds().contains(mousePos) && apples >= afc) {
-                            if (ftf == 2) {
-                                ftf = 1;
-                            } else if (ftf == 1) {
-                                ftf = 0;
-                            }
-                            if (ftf == 1) {
-                                dlgClock.restart();
-                                isdiagon = true;
-                                bg.setTexture(bg3Texture);
+                            if (ftfc == 2) {
+                                if (ftf == 2) {
+                                    ftf = 1;
+                                } else if (ftf == 1) {
+                                    ftf = 0;
+                                }
+                                if (ftf == 1) {
+                                    dlgClock.restart();
+                                    isdiagon = true;
+                                    bg.setTexture(bg3Texture);
+                                }
                             }
                             aps += 3;
                             apples -= afc;
@@ -461,6 +483,37 @@ int main() {
                     }
                 }
             }
+            if (const auto* mouse =
+                        event->getIf<sf::Event::MouseButtonPressed>())
+            {
+                if (mouse->button == sf::Mouse::Button::Left) {
+                    sf::Vector2f mousePos = {
+                        static_cast<float>(mouse->position.x),
+                        static_cast<float>(mouse->position.y)
+                    };
+
+                    if (secbtn3.getGlobalBounds().contains(mousePos) && apples >= afcc) {
+                        if (ftfc == 2) {
+                            ftfc = 1;
+                        } else if (ftfc == 1) {
+                            ftfc = 0;
+                        }
+                        if (ftfc == 1) {
+                            bg.setTexture(bg4Texture);
+                        }
+                        aps += 20;
+                        apples -= afcc;
+                        afcc += 20000;
+                        appleText.setString("Apples: " + formatNumber(apples));
+                        std::ostringstream stream2;
+                        stream2 << std::fixed << std::setprecision(0) << afcc;
+                        sb3Text.setString("Apple Factory: " + stream2.str());
+                        std::ostringstream stream3;
+                        stream3 << std::fixed << std::setprecision(0) << aps;
+                        apsText.setString("Apples per second: " + stream3.str());
+                    }
+                }
+            }
             float time = clock.getElapsedTime().asSeconds();
             float rotation = std::sin(time * 2.f) * 10.f;
             apple.setRotation(sf::degrees(rotation));
@@ -492,6 +545,8 @@ int main() {
         window.draw(sb2Text);
         window.draw(clickbtn2);
         window.draw(cb2Text);
+        window.draw(secbtn3);
+        window.draw(sb3Text);
         if (isdiagon) {
             float ddt = dlgClock.restart().asSeconds();
             float speed = 1200.f;
