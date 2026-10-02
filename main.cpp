@@ -59,7 +59,7 @@ double parseNumber(const std::string& text)
     }
 }
 
-void saveGame(double apples, double aps, double apc, double ajc, double atc, double afc, bool isdiagon, int ftf, int ftt, int ftfc, double apiec, double afcc) {
+void saveGame(double apples, double aps, double apc, double ajc, double atc, double afc, bool isdiagon, int ftf, int ftt, int ftfc, double apiec, double afcc, int jc, int tc, int fc, int pc, int fcc) {
 
     nlohmann::json save;
 
@@ -75,13 +75,18 @@ void saveGame(double apples, double aps, double apc, double ajc, double atc, dou
     save["ftfc"] = ftfc;
     save["apiec"] = apiec;
     save["afcc"] = afcc;
+    save["jc"] = jc;
+    save["tc"] = tc;
+    save["fc"] = fc;
+    save["pc"] = pc;
+    save["fcc"] = fcc;
 
     std::ofstream file("save.json");
 
     file << save.dump(4);
 }
 
-void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc, double& afc, bool& isdiagon, int& ftf, int& ftt, int& ftfc, double& apiec, double& afcc)
+void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc, double& afc, bool& isdiagon, int& ftf, int& ftt, int& ftfc, double& apiec, double& afcc, int& jc, int& tc, int& fc, int& pc, int& fcc)
 {
     std::ifstream file("save.json");
 
@@ -103,10 +108,17 @@ void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc
     ftt = save.value("ftt", 2);
     ftfc = save.value("ftfc", 2);
     apiec = save.value("apiec", 1600);
-    apiec = save.value("afcc", 24000);
+    afcc = save.value("afcc", 24000);
+    jc = save.value("jc", 0);
+    tc = save.value("tc", 0);
+    fc = save.value("fc", 0);
+    pc = save.value("pc", 0);
+    fcc = save.value("fcc", 0);
 }
 
 int main() {
+    float volume = 50.f;
+
     sf::Music music;
 
     if (!music.openFromFile("assets/Appels.mp3")) {
@@ -115,6 +127,7 @@ int main() {
 
     music.setLooping(true);
     music.play();
+    music.setVolume(volume);
 
     sf::Clock clock;
     sf::Clock apsClock;
@@ -129,11 +142,17 @@ int main() {
     double apiec = 1600;
     double afcc = 24000;
     bool isdiagon = false;
+    bool issetton = false;
     int ftf = 2;
     int ftt = 2;
     int ftfc = 2;
+    int jc = 0;
+    int tc = 0;
+    int fc = 0;
+    int pc = 0;
+    int fcc = 0;
 
-    loadGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, ftt, ftfc, apiec, afcc);
+    loadGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, ftt, ftfc, apiec, afcc, jc, tc, fc, pc, fcc);
 
     sf::RenderWindow window(
         sf::VideoMode({1920, 1080}),
@@ -169,6 +188,32 @@ int main() {
     sf::Texture dlgTexture;
 
     if (!dlgTexture.loadFromFile("assets/dialog.png")) {
+        return 1;
+    }
+
+    sf::Texture settingsTexture;
+
+    if (!settingsTexture.loadFromFile("assets/settings.png")) {
+        return 1;
+    }
+
+    sf::Texture settbtnTexture;
+
+    if (!settbtnTexture.loadFromFile("assets/settbtn.png")) {
+        return 1;
+    }
+
+    sf::Texture xbtnTexture;
+
+    if (!xbtnTexture.loadFromFile("assets/xbtn.png")) {
+        return 1;
+    }
+
+    sf::Texture tgonTexture;
+    sf::Texture tgoffTexture;
+
+    if (!tgonTexture.loadFromFile("assets/tgon.png") ||
+    !tgoffTexture.loadFromFile("assets/tgoff.png")) {
         return 1;
     }
 
@@ -231,6 +276,42 @@ int main() {
         menu.getLocalBounds().size.y / 2.f
     });
 
+    //settings
+
+    sf::Sprite settings(settingsTexture);
+    settings.setOrigin({640.f, 360.f});
+    settings.setPosition({960.f, 540.f});
+
+    sf::Sprite settbtn(settbtnTexture);
+    settbtn.setOrigin({40.f, 40.f});
+    settbtn.setPosition({1800.f, 900.f});
+
+    sf::Sprite settxbtn(xbtnTexture);
+    settxbtn.setOrigin({40.f, 40.f});
+    settxbtn.setPosition({1500.f, 280.f});
+
+    sf::Text settText(font);
+    settText.setCharacterSize(72);
+    settText.setFillColor(sf::Color::Black);
+    settText.setPosition({380.f, 240.f});
+    settText.setString("Settings");
+
+    sf::Text musText(font);
+    musText.setCharacterSize(50);
+    musText.setFillColor(sf::Color::Black);
+    musText.setPosition({380.f, 400.f});
+    musText.setString("Music:");
+
+    sf::Text meText(font);
+    meText.setCharacterSize(24);
+    meText.setFillColor(sf::Color(128, 128, 128));
+    meText.setPosition({1240.f, 820.f});
+    meText.setString("Made by MzMint");
+
+    sf::Sprite mustgbtn(tgonTexture);
+    mustgbtn.setOrigin({40.f, 40.f});
+    mustgbtn.setPosition({640.f, 445.f});
+
     //dialogs/ach
     sf::Sprite dialog(dlgTexture);
     dialog.setPosition({960.f, 1080.f});
@@ -252,6 +333,11 @@ int main() {
     cb1Text.setFillColor(sf::Color::Black);
     cb1Text.setPosition({1432.f, 122.f});
 
+    sf::Text jcText(font);
+    jcText.setCharacterSize(12);
+    jcText.setFillColor(sf::Color(128, 128, 128));
+    jcText.setPosition({1790.f, 165.f});
+
     sf::Sprite secbtn1(upgbtnTexture);
     secbtn1.setPosition({1630.f, 300.f});
     secbtn1.setOrigin({210.f, 40.f});
@@ -260,6 +346,11 @@ int main() {
     sb1Text.setCharacterSize(30);
     sb1Text.setFillColor(sf::Color::Black);
     sb1Text.setPosition({1432.f, 272.f});
+
+    sf::Text tcText(font);
+    tcText.setCharacterSize(12);
+    tcText.setFillColor(sf::Color(128, 128, 128));
+    tcText.setPosition({1790.f, 315.f});
 
     sf::Sprite secbtn2(upgbtnTexture);
     secbtn2.setPosition({1630.f, 450.f});
@@ -270,6 +361,11 @@ int main() {
     sb2Text.setFillColor(sf::Color::Black);
     sb2Text.setPosition({1432.f, 422.f});
 
+    sf::Text fcText(font);
+    fcText.setCharacterSize(12);
+    fcText.setFillColor(sf::Color(128, 128, 128));
+    fcText.setPosition({1790.f, 465.f});
+
     sf::Sprite clickbtn2(upgbtnTexture);
     clickbtn2.setPosition({1630.f, 600.f});
     clickbtn2.setOrigin({210.f, 40.f});
@@ -279,6 +375,11 @@ int main() {
     cb2Text.setFillColor(sf::Color::Black);
     cb2Text.setPosition({1432.f, 572.f});
 
+    sf::Text pcText(font);
+    pcText.setCharacterSize(12);
+    pcText.setFillColor(sf::Color(128, 128, 128));
+    pcText.setPosition({1790.f, 615.f});
+
     sf::Sprite secbtn3(upgbtnTexture);
     secbtn3.setPosition({1630.f, 750.f});
     secbtn3.setOrigin({210.f, 40.f});
@@ -287,6 +388,11 @@ int main() {
     sb3Text.setCharacterSize(30);
     sb3Text.setFillColor(sf::Color::Black);
     sb3Text.setPosition({1432.f, 722.f});
+
+    sf::Text fccText(font);
+    fccText.setCharacterSize(12);
+    fccText.setFillColor(sf::Color(128, 128, 128));
+    fccText.setPosition({1790.f, 765.f});
 
 
     //text
@@ -307,37 +413,28 @@ int main() {
     apcText.setPosition({50.f, 190.f});
 
     appleText.setString("Apples: " + formatNumber(apples));
-    std::ostringstream stream2;
-    stream2 << std::fixed << std::setprecision(0) << apc;
-    apcText.setString("Apples per click: " + stream2.str());
-    std::ostringstream stream3;
-    stream3 << std::fixed << std::setprecision(0) << aps;
-    apsText.setString("Apples per second: " + stream3.str());
-    std::ostringstream stream4;
-    stream4 << std::fixed << std::setprecision(0) << ajc;
-    cb1Text.setString("Apple Juice: " + stream4.str());
-    std::ostringstream stream5;
-    stream5 << std::fixed << std::setprecision(0) << atc;
-    sb1Text.setString("Apple Tree: " + stream5.str());
-    std::ostringstream stream6;
-    stream6 << std::fixed << std::setprecision(0) << afc;
-    sb2Text.setString("Apple Farm: " + stream6.str());
-    std::ostringstream stream7;
-    stream7 << std::fixed << std::setprecision(0) << apiec;
-    cb2Text.setString("Apple Pie: " + stream7.str());
-    std::ostringstream stream8;
-    stream8 << std::fixed << std::setprecision(0) << afcc;
-    sb3Text.setString("Apple Factory: " + stream8.str());
+    apcText.setString("Apples per click: " + formatNumber(apc));
+    apsText.setString("Apples per second: " + formatNumber(aps));
+    cb1Text.setString("Apple Juice: " + formatNumber(ajc));
+    sb1Text.setString("Apple Tree: " + formatNumber(atc));
+    sb2Text.setString("Apple Farm: " + formatNumber(afc));
+    cb2Text.setString("Apple Pie: " + formatNumber(apiec));
+    sb3Text.setString("Apple Factory: " + formatNumber(afcc));
+    jcText.setString("x" + formatNumber(jc));
+    tcText.setString("x" + formatNumber(tc));
+    fcText.setString("x" + formatNumber(fc));
+    pcText.setString("x" + formatNumber(pc));
+    fccText.setString("x" + formatNumber(fcc));
     dlgText.setString("btw the apple's name is Appel");
 
     while (window.isOpen()) {
         while (auto event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
-                saveGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, ftt, ftfc, apiec, afcc);
+                saveGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, ftt, ftfc, apiec, afcc, jc, tc, fc, pc, fcc);
                 window.close();
             }
 
-            if (!isdiagon) {
+            if (!isdiagon && !issetton) {
                 if (const auto* mouse =
                         event->getIf<sf::Event::MouseButtonPressed>())
                 {
@@ -367,6 +464,7 @@ int main() {
                             apc ++;
                             apples -= ajc;
                             ajc *= 2;
+                            jc++;
                             appleText.setString("Apples: " + formatNumber(apples));
                             std::ostringstream stream2;
                             stream2 << std::fixed << std::setprecision(0) << apc;
@@ -374,6 +472,7 @@ int main() {
                             std::ostringstream stream3;
                             stream3 << std::fixed << std::setprecision(0) << ajc;
                             cb1Text.setString("Apple Juice: " + stream3.str());
+                            jcText.setString("x" + formatNumber(jc));
                         }
                     }
                 }
@@ -400,6 +499,7 @@ int main() {
                             aps ++;
                             apples -= atc;
                             atc += 20;
+                            tc++;
                             appleText.setString("Apples: " + formatNumber(apples));
                             std::ostringstream stream2;
                             stream2 << std::fixed << std::setprecision(0) << atc;
@@ -407,6 +507,7 @@ int main() {
                             std::ostringstream stream3;
                             stream3 << std::fixed << std::setprecision(0) << aps;
                             apsText.setString("Apples per second: " + stream3.str());
+                            tcText.setString("x" + formatNumber(tc));
                         }
                     }
                 }
@@ -435,6 +536,7 @@ int main() {
                             aps += 3;
                             apples -= afc;
                             afc += 350;
+                            fc++;
                             appleText.setString("Apples: " + formatNumber(apples));
                             std::ostringstream stream2;
                             stream2 << std::fixed << std::setprecision(0) << afc;
@@ -442,6 +544,7 @@ int main() {
                             std::ostringstream stream3;
                             stream3 << std::fixed << std::setprecision(0) << aps;
                             apsText.setString("Apples per second: " + stream3.str());
+                            fcText.setString("x" + formatNumber(fc));
                         }
                     }
                 }
@@ -458,6 +561,7 @@ int main() {
                             apc += 5;
                             apples -= apiec;
                             apiec *= 2.5;
+                            pc++;
                             appleText.setString("Apples: " + formatNumber(apples));
                             std::ostringstream stream2;
                             stream2 << std::fixed << std::setprecision(0) << apc;
@@ -465,6 +569,58 @@ int main() {
                             std::ostringstream stream7;
                             stream7 << std::fixed << std::setprecision(0) << apiec;
                             cb2Text.setString("Apple Pie: " + stream7.str());
+                            pcText.setString("x" + formatNumber(pc));
+                        }
+                    }
+                }
+                if (const auto* mouse =
+                        event->getIf<sf::Event::MouseButtonPressed>())
+                {
+                    if (mouse->button == sf::Mouse::Button::Left) {
+                        sf::Vector2f mousePos = {
+                            static_cast<float>(mouse->position.x),
+                            static_cast<float>(mouse->position.y)
+                        };
+
+                        if (settbtn.getGlobalBounds().contains(mousePos)) {
+                            issetton = true;
+                        }
+                    }
+                }
+            }
+            if (issetton) {
+                if (const auto* mouse =
+                            event->getIf<sf::Event::MouseButtonPressed>())
+                {
+                    if (mouse->button == sf::Mouse::Button::Left) {
+                        sf::Vector2f mousePos = {
+                            static_cast<float>(mouse->position.x),
+                            static_cast<float>(mouse->position.y)
+                        };
+
+                        if (settxbtn.getGlobalBounds().contains(mousePos)) {
+                            issetton = false;
+                        }
+                    }
+                }
+                if (const auto* mouse =
+                            event->getIf<sf::Event::MouseButtonPressed>())
+                {
+                    if (mouse->button == sf::Mouse::Button::Left) {
+                        sf::Vector2f mousePos = {
+                            static_cast<float>(mouse->position.x),
+                            static_cast<float>(mouse->position.y)
+                        };
+
+                        if (mustgbtn.getGlobalBounds().contains(mousePos)) {
+                            if (volume == 50.f) {
+                                volume = 0.f;
+                                mustgbtn.setTexture(tgoffTexture);
+                            } else {
+                                volume = 50.f;
+                                mustgbtn.setTexture(tgonTexture);
+                            }
+                            music.setVolume(volume);
                         }
                     }
                 }
@@ -504,6 +660,7 @@ int main() {
                         aps += 20;
                         apples -= afcc;
                         afcc += 20000;
+                        fcc++;
                         appleText.setString("Apples: " + formatNumber(apples));
                         std::ostringstream stream2;
                         stream2 << std::fixed << std::setprecision(0) << afcc;
@@ -511,6 +668,7 @@ int main() {
                         std::ostringstream stream3;
                         stream3 << std::fixed << std::setprecision(0) << aps;
                         apsText.setString("Apples per second: " + stream3.str());
+                        fccText.setString("x" + formatNumber(fcc));
                     }
                 }
             }
@@ -539,14 +697,20 @@ int main() {
         window.draw(menu);
         window.draw(clickbtn1);
         window.draw(cb1Text);
+        window.draw(jcText);
         window.draw(secbtn1);
         window.draw(sb1Text);
+        window.draw(tcText);
         window.draw(secbtn2);
         window.draw(sb2Text);
+        window.draw(fcText);
         window.draw(clickbtn2);
         window.draw(cb2Text);
+        window.draw(pcText);
         window.draw(secbtn3);
         window.draw(sb3Text);
+        window.draw(fccText);
+        window.draw(settbtn);
         if (isdiagon) {
             float ddt = dlgClock.restart().asSeconds();
             float speed = 1200.f;
@@ -564,7 +728,14 @@ int main() {
             window.draw(dialog);
             window.draw(dlgText);
         }
-
+        if (issetton) {
+            window.draw(settings);
+            window.draw(settxbtn);
+            window.draw(settText);
+            window.draw(musText);
+            window.draw(mustgbtn);
+            window.draw(meText);
+        }
 
         window.display();
     }

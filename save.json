@@ -7,8 +7,13 @@
     "apples": 0.0,
     "aps": 0.0,
     "atc": 20.0,
+    "fc": 0,
+    "fcc": 0,
     "ftf": 2,
     "ftfc": 2,
     "ftt": 2,
-    "isdiagon": false
+    "isdiagon": false,
+    "jc": 0,
+    "pc": 0,
+    "tc": 0
 }
