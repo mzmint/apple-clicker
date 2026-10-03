@@ -13,7 +13,10 @@ std::string formatNumber(double number)
 {
     std::ostringstream out;
 
-    if (number >= 1'000'000'000'000.0) {
+    if (number >= 1'000'000'000'000'000.0) {
+        out << std::fixed << std::setprecision(1)
+            << number / 1'000'000'000'000'000.0 << "Qa";
+    } else if (number >= 1'000'000'000'000.0) {
         out << std::fixed << std::setprecision(1)
             << number / 1'000'000'000'000.0 << "T";
     } else if (number >= 1'000'000'000.0) {
@@ -466,12 +469,8 @@ int main() {
                             ajc *= 2;
                             jc++;
                             appleText.setString("Apples: " + formatNumber(apples));
-                            std::ostringstream stream2;
-                            stream2 << std::fixed << std::setprecision(0) << apc;
-                            apcText.setString("Apples per click: " + stream2.str());
-                            std::ostringstream stream3;
-                            stream3 << std::fixed << std::setprecision(0) << ajc;
-                            cb1Text.setString("Apple Juice: " + stream3.str());
+                            apcText.setString("Apples per click: " + formatNumber(apc));
+                            cb1Text.setString("Apple Juice: " + formatNumber(ajc));
                             jcText.setString("x" + formatNumber(jc));
                         }
                     }
@@ -501,12 +500,8 @@ int main() {
                             atc += 20;
                             tc++;
                             appleText.setString("Apples: " + formatNumber(apples));
-                            std::ostringstream stream2;
-                            stream2 << std::fixed << std::setprecision(0) << atc;
-                            sb1Text.setString("Apple Tree: " + stream2.str());
-                            std::ostringstream stream3;
-                            stream3 << std::fixed << std::setprecision(0) << aps;
-                            apsText.setString("Apples per second: " + stream3.str());
+                            sb1Text.setString("Apple Tree: " + formatNumber(atc));
+                            apsText.setString("Apples per second: " + formatNumber(aps));
                             tcText.setString("x" + formatNumber(tc));
                         }
                     }
@@ -538,12 +533,8 @@ int main() {
                             afc += 350;
                             fc++;
                             appleText.setString("Apples: " + formatNumber(apples));
-                            std::ostringstream stream2;
-                            stream2 << std::fixed << std::setprecision(0) << afc;
-                            sb2Text.setString("Apple Farm: " + stream2.str());
-                            std::ostringstream stream3;
-                            stream3 << std::fixed << std::setprecision(0) << aps;
-                            apsText.setString("Apples per second: " + stream3.str());
+                            sb2Text.setString("Apple Farm: " + formatNumber(afc));
+                            apsText.setString("Apples per second: " + formatNumber(aps));
                             fcText.setString("x" + formatNumber(fc));
                         }
                     }
@@ -563,12 +554,8 @@ int main() {
                             apiec *= 2.5;
                             pc++;
                             appleText.setString("Apples: " + formatNumber(apples));
-                            std::ostringstream stream2;
-                            stream2 << std::fixed << std::setprecision(0) << apc;
-                            apcText.setString("Apples per click: " + stream2.str());
-                            std::ostringstream stream7;
-                            stream7 << std::fixed << std::setprecision(0) << apiec;
-                            cb2Text.setString("Apple Pie: " + stream7.str());
+                            apcText.setString("Apples per click: " + formatNumber(apc));
+                            cb2Text.setString("Apple Pie: " + formatNumber(apc));
                             pcText.setString("x" + formatNumber(pc));
                         }
                     }
@@ -662,12 +649,8 @@ int main() {
                         afcc += 20000;
                         fcc++;
                         appleText.setString("Apples: " + formatNumber(apples));
-                        std::ostringstream stream2;
-                        stream2 << std::fixed << std::setprecision(0) << afcc;
-                        sb3Text.setString("Apple Factory: " + stream2.str());
-                        std::ostringstream stream3;
-                        stream3 << std::fixed << std::setprecision(0) << aps;
-                        apsText.setString("Apples per second: " + stream3.str());
+                        sb3Text.setString("Apple Factory: " + formatNumber(afcc));
+                        apsText.setString("Apples per second: " + formatNumber(aps));
                         fccText.setString("x" + formatNumber(fcc));
                     }
                 }
