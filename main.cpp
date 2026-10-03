@@ -123,8 +123,13 @@ int main() {
     float volume = 50.f;
 
     sf::Music music;
+    sf::Music ba;
 
     if (!music.openFromFile("assets/Appels.mp3")) {
+        return 1;
+    }
+
+    if (!ba.openFromFile("assets/badapple.mp3")) {
         return 1;
     }
 
@@ -154,6 +159,7 @@ int main() {
     int fc = 0;
     int pc = 0;
     int fcc = 0;
+    bool isba = false;
 
     loadGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, ftt, ftfc, apiec, afcc, jc, tc, fc, pc, fcc);
 
@@ -171,14 +177,18 @@ int main() {
     }
 
     sf::Texture appleTexture;
+    sf::Texture baTexture;
 
-    if (!appleTexture.loadFromFile("assets/apple.png")) {
+    if (!appleTexture.loadFromFile("assets/apple.png") ||
+        !baTexture.loadFromFile("assets/badapple.png")) {
         return 1;
     }
 
     sf::Texture menuTexture;
+    sf::Texture bamenuTexture;
 
-    if (!menuTexture.loadFromFile("assets/menu.png")) {
+    if (!menuTexture.loadFromFile("assets/menu.png") ||
+        !bamenuTexture.loadFromFile("assets/bamenu.png")) {
         return 1;
     }
 
@@ -308,12 +318,22 @@ int main() {
     sf::Text meText(font);
     meText.setCharacterSize(24);
     meText.setFillColor(sf::Color(128, 128, 128));
-    meText.setPosition({1240.f, 820.f});
-    meText.setString("Made by MzMint");
+    meText.setPosition({1180.f, 820.f});
+    meText.setString("Made by MzMint    v1.1.0");
 
     sf::Sprite mustgbtn(tgonTexture);
     mustgbtn.setOrigin({40.f, 40.f});
     mustgbtn.setPosition({640.f, 445.f});
+
+    sf::Text baText(font);
+    baText.setCharacterSize(50);
+    baText.setFillColor(sf::Color::Black);
+    baText.setPosition({380.f, 470.f});
+    baText.setString("Bad Apple:");
+
+    sf::Sprite batgbtn(tgoffTexture);
+    batgbtn.setOrigin({40.f, 40.f});
+    batgbtn.setPosition({760.f, 515.f});
 
     //dialogs/ach
     sf::Sprite dialog(dlgTexture);
@@ -608,6 +628,39 @@ int main() {
                                 mustgbtn.setTexture(tgonTexture);
                             }
                             music.setVolume(volume);
+                            ba.setVolume(volume);
+                        }
+                    }
+                }
+                if (const auto* mouse =
+                            event->getIf<sf::Event::MouseButtonPressed>())
+                {
+                    if (mouse->button == sf::Mouse::Button::Left) {
+                        sf::Vector2f mousePos = {
+                            static_cast<float>(mouse->position.x),
+                            static_cast<float>(mouse->position.y)
+                        };
+
+                        if (batgbtn.getGlobalBounds().contains(mousePos)) {
+                            if (isba) {
+                                ba.stop();
+                                music.setLooping(true);
+                                music.play();
+                                music.setVolume(volume);
+                                isba = false;
+                                apple.setTexture(appleTexture);
+                                menu.setTexture(menuTexture);
+                                batgbtn.setTexture(tgoffTexture);
+                            } else {
+                                ba.setLooping(true);
+                                ba.play();
+                                ba.setVolume(volume);
+                                music.stop();
+                                isba = true;
+                                apple.setTexture(baTexture);
+                                menu.setTexture(bamenuTexture);
+                                batgbtn.setTexture(tgonTexture);
+                            }
                         }
                     }
                 }
@@ -670,9 +723,12 @@ int main() {
             sf::degrees(std::sin(time * 2.f) * 8.f)
         );
 
-        window.clear(sf::Color(200, 200, 200));
+        window.clear(sf::Color::White);
 
-        window.draw(bg);
+
+        if (!isba) {
+            window.draw(bg);
+        }
         window.draw(apple);
         window.draw(appleText);
         window.draw(apsText);
@@ -718,6 +774,8 @@ int main() {
             window.draw(musText);
             window.draw(mustgbtn);
             window.draw(meText);
+            window.draw(baText);
+            window.draw(batgbtn);
         }
 
         window.display();
