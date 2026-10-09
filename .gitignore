@@ -4,12 +4,14 @@
 # CMake build directories
 cmake-build-*/
 build/
+release*/
 
 # Compiled files
 *.exe
 *.dll
 *.obj
 *.o
+*.xml
 
 # CMake generated files
 CMakeCache.txt

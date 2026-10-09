@@ -8,6 +8,7 @@
 #include <cmath>
 #include <sstream>
 #include <iomanip>
+#include <chrono>
 
 std::string formatNumber(double number)
 {
@@ -62,7 +63,7 @@ double parseNumber(const std::string& text)
     }
 }
 
-void saveGame(double apples, double aps, double apc, double ajc, double atc, double afc, bool isdiagon, int ftf, int ftt, int ftfc, double apiec, double afcc, int jc, int tc, int fc, int pc, int fcc) {
+void saveGame(double apples, double aps, double apc, double ajc, double atc, double afc, bool isdiagon, int ftf, int ftt, int ftfc, double apiec, double afcc, int jc, int tc, int fc, int pc, int fcc, long long timestamp) {
 
     nlohmann::json save;
 
@@ -83,13 +84,14 @@ void saveGame(double apples, double aps, double apc, double ajc, double atc, dou
     save["fc"] = fc;
     save["pc"] = pc;
     save["fcc"] = fcc;
+    save["time"] = timestamp;
 
     std::ofstream file("save.json");
 
     file << save.dump(4);
 }
 
-void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc, double& afc, bool& isdiagon, int& ftf, int& ftt, int& ftfc, double& apiec, double& afcc, int& jc, int& tc, int& fc, int& pc, int& fcc)
+void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc, double& afc, bool& isdiagon, int& ftf, int& ftt, int& ftfc, double& apiec, double& afcc, int& jc, int& tc, int& fc, int& pc, int& fcc, long long& clt)
 {
     std::ifstream file("save.json");
 
@@ -117,6 +119,7 @@ void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc
     fc = save.value("fc", 0);
     pc = save.value("pc", 0);
     fcc = save.value("fcc", 0);
+    clt = save.value("time", 0);
 }
 
 int main() {
@@ -160,8 +163,17 @@ int main() {
     int pc = 0;
     int fcc = 0;
     bool isba = false;
+    long long opt;
+    long long clt;
+    int offlinegain = 0;
 
-    loadGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, ftt, ftfc, apiec, afcc, jc, tc, fc, pc, fcc);
+    loadGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, ftt, ftfc, apiec, afcc, jc, tc, fc, pc, fcc, clt);
+
+    auto opnow = std::chrono::system_clock::now();
+    opt = std::chrono::duration_cast<std::chrono::seconds>(opnow.time_since_epoch()).count();
+
+    offlinegain = (opt - clt) * (0.2 * aps);
+    apples += offlinegain;
 
     sf::RenderWindow window(
         sf::VideoMode({1920, 1080}),
@@ -270,6 +282,12 @@ int main() {
         apple.getLocalBounds().size.x / 2.f,
         apple.getLocalBounds().size.y / 2.f - 80.f
     });
+
+    sf::Text offgtext(font);
+    offgtext.setCharacterSize(30);
+    offgtext.setFillColor(sf::Color(32, 32, 32));
+    offgtext.setPosition({10.f, 1040.f});
+    offgtext.setString("Offline Gains: " + formatNumber(offlinegain));
 
     //menu
 
@@ -450,10 +468,18 @@ int main() {
     fccText.setString("x" + formatNumber(fcc));
     dlgText.setString("btw the apple's name is Appel");
 
+
+    sf::Clock ogClock;
+    bool showog = true;
+
+
     while (window.isOpen()) {
         while (auto event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
-                saveGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, ftt, ftfc, apiec, afcc, jc, tc, fc, pc, fcc);
+                auto now = std::chrono::system_clock::now();
+
+                long long timestamp = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
+                saveGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, ftt, ftfc, apiec, afcc, jc, tc, fc, pc, fcc, timestamp);
                 window.close();
             }
 
@@ -776,6 +802,14 @@ int main() {
             window.draw(meText);
             window.draw(baText);
             window.draw(batgbtn);
+        }
+
+        if (showog && ogClock.getElapsedTime().asSeconds() >= 20.f) {
+            showog = false;
+        }
+
+        if (showog) {
+            window.draw(offgtext);
         }
 
         window.display();
