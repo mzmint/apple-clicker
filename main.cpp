@@ -10,8 +10,16 @@
 #include <iomanip>
 #include <chrono>
 
-std::string formatNumber(double number)
-{
+void centerText(sf::Text& text) {
+    sf::FloatRect bounds = text.getLocalBounds();
+
+    text.setOrigin({
+        bounds.position.x + bounds.size.x / 2.f,
+        bounds.position.y + bounds.size.y / 2.f
+    });
+}
+
+std::string formatNumber(double number) {
     std::ostringstream out;
 
     if (number >= 1'000'000'000'000'000.0) {
@@ -33,8 +41,7 @@ std::string formatNumber(double number)
     return out.str();
 }
 
-double parseNumber(const std::string& text)
-{
+double parseNumber(const std::string& text) {
     if (text.empty())
         return 0;
 
@@ -143,6 +150,8 @@ int main() {
     sf::Clock clock;
     sf::Clock apsClock;
     sf::Clock dlgClock;
+    sf::Clock fnClock;
+    sf::Clock fntClock;
 
     double apples = 0;
     double aps = 0;
@@ -166,14 +175,21 @@ int main() {
     long long opt;
     long long clt;
     int offlinegain = 0;
+    bool isfnon = false;
+    int fnt = 255;
 
     loadGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, ftt, ftfc, apiec, afcc, jc, tc, fc, pc, fcc, clt);
 
     auto opnow = std::chrono::system_clock::now();
     opt = std::chrono::duration_cast<std::chrono::seconds>(opnow.time_since_epoch()).count();
 
-    offlinegain = (opt - clt) * (0.2 * aps);
-    apples += offlinegain;
+    if (opt - clt <= 14400) {
+        offlinegain = (opt - clt) * (0.2 * aps);
+        apples += offlinegain;
+    } else {
+        offlinegain = 14400 * (0.2 * aps);
+        apples += offlinegain;
+    }
 
     sf::RenderWindow window(
         sf::VideoMode({1920, 1080}),
@@ -453,6 +469,16 @@ int main() {
     apcText.setFillColor(sf::Color::Black);
     apcText.setPosition({50.f, 190.f});
 
+    sf::Text fnText(font);
+    fnText.setCharacterSize(36);
+    fnText.setFillColor(sf::Color::Black);
+    sf::FloatRect fnbounds = fnText.getLocalBounds();
+    fnText.setOrigin({
+        fnbounds.position.x + fnbounds.size.x / 2.f,
+        fnbounds.position.y + fnbounds.size.y / 2.f
+    });
+    fnText.setPosition({960.f, 540.f});
+
     appleText.setString("Apples: " + formatNumber(apples));
     apcText.setString("Apples per click: " + formatNumber(apc));
     apsText.setString("Apples per second: " + formatNumber(aps));
@@ -496,6 +522,9 @@ int main() {
                         if (apple.getGlobalBounds().contains(mousePos)) {
                             apples += apc;
                             appleText.setString("Apples: " + formatNumber(apples));
+                            isfnon = true;
+                            fnClock.restart();
+                            fnt = 255;
                         }
                     }
                 }
@@ -811,6 +840,21 @@ int main() {
         if (showog) {
             window.draw(offgtext);
         }
+        if (isfnon) {
+            fnText.setString("+" + formatNumber(apc));
+            centerText(fnText);
+            if (fnClock.getElapsedTime().asMilliseconds() < 500) {
+                window.draw(fnText);
+                if (fntClock.getElapsedTime().asMilliseconds() >= 8) {
+                    fnText.setFillColor(sf::Color(0, 0, 0, fnt));
+                    fnt--;
+                }
+            } else {
+                isfnon = false;
+                fnt = 255;
+            }
+        }
+
 
         window.display();
     }
