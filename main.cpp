@@ -70,7 +70,7 @@ double parseNumber(const std::string& text) {
     }
 }
 
-void saveGame(double apples, double aps, double apc, double ajc, double atc, double afc, bool isdiagon, int ftf, int ftt, int ftfc, double apiec, double afcc, int jc, int tc, int fc, int pc, int fcc, long long timestamp) {
+void saveGame(double apples, double aps, double apc, double ajc, double atc, double afc, bool isdiagon, int ftf, int ftt, int ftfc, double apiec, double afcc, int jc, int tc, int fc, int pc, int fcc, long long timestamp, double tcc, int occ, int oc) {
 
     nlohmann::json save;
 
@@ -92,13 +92,16 @@ void saveGame(double apples, double aps, double apc, double ajc, double atc, dou
     save["pc"] = pc;
     save["fcc"] = fcc;
     save["time"] = timestamp;
+    save["tcc"] = tcc;
+    save["occ"] = occ;
+    save["oc"] = oc;
 
     std::ofstream file("save.json");
 
     file << save.dump(4);
 }
 
-void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc, double& afc, bool& isdiagon, int& ftf, int& ftt, int& ftfc, double& apiec, double& afcc, int& jc, int& tc, int& fc, int& pc, int& fcc, long long& clt)
+void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc, double& afc, bool& isdiagon, int& ftf, int& ftt, int& ftfc, double& apiec, double& afcc, int& jc, int& tc, int& fc, int& pc, int& fcc, long long& clt, double& tcc, int& occ, int& oc)
 {
     std::ifstream file("save.json");
 
@@ -127,6 +130,9 @@ void loadGame(double& apples, double& aps, double& apc, double& ajc, double& atc
     pc = save.value("pc", 0);
     fcc = save.value("fcc", 0);
     clt = save.value("time", 0);
+    tcc = save.value("tcc", 50000);
+    occ = save.value("occ", 0);
+    oc = save.value("oc", 14400);
 }
 
 int main() {
@@ -177,17 +183,21 @@ int main() {
     int offlinegain = 0;
     bool isfnon = false;
     int fnt = 255;
+    bool isupg = true;
+    double tcc = 50000;
+    int occ = 0;
+    int oc = 14400;
 
-    loadGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, ftt, ftfc, apiec, afcc, jc, tc, fc, pc, fcc, clt);
+    loadGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, ftt, ftfc, apiec, afcc, jc, tc, fc, pc, fcc, clt, tcc, occ, oc);
 
     auto opnow = std::chrono::system_clock::now();
     opt = std::chrono::duration_cast<std::chrono::seconds>(opnow.time_since_epoch()).count();
 
-    if (opt - clt <= 14400) {
+    if (opt - clt <= oc) {
         offlinegain = (opt - clt) * (0.2 * aps);
         apples += offlinegain;
     } else {
-        offlinegain = 14400 * (0.2 * aps);
+        offlinegain = oc * (0.2 * aps);
         apples += offlinegain;
     }
 
@@ -250,11 +260,25 @@ int main() {
         return 1;
     }
 
+    sf::Texture saveTexture;
+
+    if (!saveTexture.loadFromFile("assets/save.png")) {
+        return 1;
+    }
+
     sf::Texture tgonTexture;
     sf::Texture tgoffTexture;
 
     if (!tgonTexture.loadFromFile("assets/tgon.png") ||
     !tgoffTexture.loadFromFile("assets/tgoff.png")) {
+        return 1;
+    }
+
+    sf::Texture offupgTexture;
+    sf::Texture appupgTexture;
+
+    if (!offupgTexture.loadFromFile("assets/offline-upgrade.png") ||
+    !appupgTexture.loadFromFile("assets/apple-upgrade.png")) {
         return 1;
     }
 
@@ -331,7 +355,7 @@ int main() {
 
     sf::Sprite settbtn(settbtnTexture);
     settbtn.setOrigin({40.f, 40.f});
-    settbtn.setPosition({1800.f, 900.f});
+    settbtn.setPosition({1800.f, 950.f});
 
     sf::Sprite settxbtn(xbtnTexture);
     settxbtn.setOrigin({40.f, 40.f});
@@ -353,7 +377,7 @@ int main() {
     meText.setCharacterSize(24);
     meText.setFillColor(sf::Color(128, 128, 128));
     meText.setPosition({1180.f, 820.f});
-    meText.setString("Made by MzMint    v1.1.0");
+    meText.setString("Made by MzMint    v1.3.0");
 
     sf::Sprite mustgbtn(tgonTexture);
     mustgbtn.setOrigin({40.f, 40.f});
@@ -381,76 +405,113 @@ int main() {
 
     //menu buttons
 
+    sf::Text menut(font);
+    menut.setCharacterSize(48);
+    menut.setFillColor(sf::Color::Black);
+    menut.setPosition({1440.f, 100.f});
+    menut.setString("Upgrades");
+
+    sf::Sprite menusw(offupgTexture);
+    menusw.setOrigin({40.f, 40.f});
+    menusw.setPosition({1800.f, 125.f});
+
     sf::Sprite clickbtn1(upgbtnTexture);
-    clickbtn1.setPosition({1630.f, 150.f});
+    clickbtn1.setPosition({1630.f, 250.f});
     clickbtn1.setOrigin({210.f, 40.f});
 
     sf::Text cb1Text(font);
     cb1Text.setCharacterSize(30);
     cb1Text.setFillColor(sf::Color::Black);
-    cb1Text.setPosition({1432.f, 122.f});
+    cb1Text.setPosition({1432.f, 222.f});
 
     sf::Text jcText(font);
     jcText.setCharacterSize(12);
     jcText.setFillColor(sf::Color(128, 128, 128));
-    jcText.setPosition({1790.f, 165.f});
+    jcText.setPosition({1790.f, 265.f});
 
     sf::Sprite secbtn1(upgbtnTexture);
-    secbtn1.setPosition({1630.f, 300.f});
+    secbtn1.setPosition({1630.f, 390.f});
     secbtn1.setOrigin({210.f, 40.f});
 
     sf::Text sb1Text(font);
     sb1Text.setCharacterSize(30);
     sb1Text.setFillColor(sf::Color::Black);
-    sb1Text.setPosition({1432.f, 272.f});
+    sb1Text.setPosition({1432.f, 362.f});
 
     sf::Text tcText(font);
     tcText.setCharacterSize(12);
     tcText.setFillColor(sf::Color(128, 128, 128));
-    tcText.setPosition({1790.f, 315.f});
+    tcText.setPosition({1790.f, 405.f});
 
     sf::Sprite secbtn2(upgbtnTexture);
-    secbtn2.setPosition({1630.f, 450.f});
+    secbtn2.setPosition({1630.f, 530.f});
     secbtn2.setOrigin({210.f, 40.f});
 
     sf::Text sb2Text(font);
     sb2Text.setCharacterSize(30);
     sb2Text.setFillColor(sf::Color::Black);
-    sb2Text.setPosition({1432.f, 422.f});
+    sb2Text.setPosition({1432.f, 502.f});
 
     sf::Text fcText(font);
     fcText.setCharacterSize(12);
     fcText.setFillColor(sf::Color(128, 128, 128));
-    fcText.setPosition({1790.f, 465.f});
+    fcText.setPosition({1790.f, 545.f});
 
     sf::Sprite clickbtn2(upgbtnTexture);
-    clickbtn2.setPosition({1630.f, 600.f});
+    clickbtn2.setPosition({1630.f, 670.f});
     clickbtn2.setOrigin({210.f, 40.f});
 
     sf::Text cb2Text(font);
     cb2Text.setCharacterSize(30);
     cb2Text.setFillColor(sf::Color::Black);
-    cb2Text.setPosition({1432.f, 572.f});
+    cb2Text.setPosition({1432.f, 642.f});
 
     sf::Text pcText(font);
     pcText.setCharacterSize(12);
     pcText.setFillColor(sf::Color(128, 128, 128));
-    pcText.setPosition({1790.f, 615.f});
+    pcText.setPosition({1790.f, 685.f});
 
     sf::Sprite secbtn3(upgbtnTexture);
-    secbtn3.setPosition({1630.f, 750.f});
+    secbtn3.setPosition({1630.f, 810.f});
     secbtn3.setOrigin({210.f, 40.f});
 
     sf::Text sb3Text(font);
     sb3Text.setCharacterSize(30);
     sb3Text.setFillColor(sf::Color::Black);
-    sb3Text.setPosition({1432.f, 722.f});
+    sb3Text.setPosition({1432.f, 782.f});
 
     sf::Text fccText(font);
     fccText.setCharacterSize(12);
     fccText.setFillColor(sf::Color(128, 128, 128));
-    fccText.setPosition({1790.f, 765.f});
+    fccText.setPosition({1790.f, 825.f});
 
+    //offg menu
+
+    sf::Sprite timecap(upgbtnTexture);
+    timecap.setPosition({1630.f, 250.f});
+    timecap.setOrigin({210.f, 40.f});
+
+    sf::Text timecText(font);
+    timecText.setCharacterSize(30);
+    timecText.setFillColor(sf::Color::Black);
+    timecText.setPosition({1432.f, 222.f});
+
+    sf::Text tccText(font);
+    tccText.setCharacterSize(12);
+    tccText.setFillColor(sf::Color(128, 128, 128));
+    tccText.setPosition({1790.f, 265.f});
+
+    //save
+
+    sf::Sprite saving(saveTexture);
+    saving.setPosition({960.f, 540.f});
+    saving.setOrigin({500.f, 125.f});
+
+    sf::Text sText(font);
+    sText.setCharacterSize(72);
+    sText.setFillColor(sf::Color::Black);
+    sText.setPosition({800.f, 500.f});
+    sText.setString("Saving...");
 
     //text
 
@@ -493,6 +554,8 @@ int main() {
     pcText.setString("x" + formatNumber(pc));
     fccText.setString("x" + formatNumber(fcc));
     dlgText.setString("btw the apple's name is Appel");
+    timecText.setString("Increase OC: " + formatNumber(tcc));
+    tccText.setString("x" + formatNumber(occ));
 
 
     sf::Clock ogClock;
@@ -505,9 +568,11 @@ int main() {
                 auto now = std::chrono::system_clock::now();
 
                 long long timestamp = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
-                saveGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, ftt, ftfc, apiec, afcc, jc, tc, fc, pc, fcc, timestamp);
+                saveGame(apples, aps, apc, ajc, atc, afc, isdiagon, ftf, ftt, ftfc, apiec, afcc, jc, tc, fc, pc, fcc, timestamp, tcc, occ, oc);
                 window.close();
             }
+
+            //apple
 
             if (!isdiagon && !issetton) {
                 if (const auto* mouse =
@@ -529,6 +594,8 @@ int main() {
                     }
                 }
 
+                //apple juice
+
                 if (const auto* mouse =
                         event->getIf<sf::Event::MouseButtonPressed>())
                 {
@@ -538,7 +605,7 @@ int main() {
                             static_cast<float>(mouse->position.y)
                         };
 
-                        if (clickbtn1.getGlobalBounds().contains(mousePos) && apples >= ajc) {
+                        if (clickbtn1.getGlobalBounds().contains(mousePos) && apples >= ajc && isupg) {
                             apc ++;
                             apples -= ajc;
                             ajc *= 2;
@@ -550,6 +617,9 @@ int main() {
                         }
                     }
                 }
+
+                //apple tree
+
                 if (const auto* mouse =
                         event->getIf<sf::Event::MouseButtonPressed>())
                 {
@@ -559,7 +629,7 @@ int main() {
                             static_cast<float>(mouse->position.y)
                         };
 
-                        if (secbtn1.getGlobalBounds().contains(mousePos) && apples >= atc) {
+                        if (secbtn1.getGlobalBounds().contains(mousePos) && apples >= atc && isupg) {
                             if (ftf == 2 && ftfc == 2) {
                                 if (ftt == 2) {
                                     ftt = 1;
@@ -581,6 +651,9 @@ int main() {
                         }
                     }
                 }
+
+                //apple farm
+
                 if (const auto* mouse =
                         event->getIf<sf::Event::MouseButtonPressed>())
                 {
@@ -590,7 +663,7 @@ int main() {
                             static_cast<float>(mouse->position.y)
                         };
 
-                        if (secbtn2.getGlobalBounds().contains(mousePos) && apples >= afc) {
+                        if (secbtn2.getGlobalBounds().contains(mousePos) && apples >= afc && isupg) {
                             if (ftfc == 2) {
                                 if (ftf == 2) {
                                     ftf = 1;
@@ -614,6 +687,9 @@ int main() {
                         }
                     }
                 }
+
+                //apple pie
+
                 if (const auto* mouse =
                         event->getIf<sf::Event::MouseButtonPressed>())
                 {
@@ -623,7 +699,7 @@ int main() {
                             static_cast<float>(mouse->position.y)
                         };
 
-                        if (clickbtn2.getGlobalBounds().contains(mousePos) && apples >= apiec) {
+                        if (clickbtn2.getGlobalBounds().contains(mousePos) && apples >= apiec && isupg) {
                             apc += 5;
                             apples -= apiec;
                             apiec *= 2.5;
@@ -635,6 +711,41 @@ int main() {
                         }
                     }
                 }
+
+                //apple factory
+
+                if (const auto* mouse =
+                        event->getIf<sf::Event::MouseButtonPressed>())
+                {
+                    if (mouse->button == sf::Mouse::Button::Left) {
+                        sf::Vector2f mousePos = {
+                            static_cast<float>(mouse->position.x),
+                            static_cast<float>(mouse->position.y)
+                        };
+
+                        if (secbtn3.getGlobalBounds().contains(mousePos) && apples >= afcc && isupg) {
+                            if (ftfc == 2) {
+                                ftfc = 1;
+                            } else if (ftfc == 1) {
+                                ftfc = 0;
+                            }
+                            if (ftfc == 1) {
+                                bg.setTexture(bg4Texture);
+                            }
+                            aps += 20;
+                            apples -= afcc;
+                            afcc += 20000;
+                            fcc++;
+                            appleText.setString("Apples: " + formatNumber(apples));
+                            sb3Text.setString("Apple Factory: " + formatNumber(afcc));
+                            apsText.setString("Apples per second: " + formatNumber(aps));
+                            fccText.setString("x" + formatNumber(fcc));
+                        }
+                    }
+                }
+
+                //settings
+
                 if (const auto* mouse =
                         event->getIf<sf::Event::MouseButtonPressed>())
                 {
@@ -646,6 +757,46 @@ int main() {
 
                         if (settbtn.getGlobalBounds().contains(mousePos)) {
                             issetton = true;
+                        }
+                    }
+                }
+
+                if (const auto* mouse =
+                        event->getIf<sf::Event::MouseButtonPressed>())
+                {
+                    if (mouse->button == sf::Mouse::Button::Left) {
+                        sf::Vector2f mousePos = {
+                            static_cast<float>(mouse->position.x),
+                            static_cast<float>(mouse->position.y)
+                        };
+
+                        if (menusw.getGlobalBounds().contains(mousePos)) {
+                            isupg = !isupg;
+                            if (!isupg) {
+                                menusw.setTexture(appupgTexture);
+                            } else {
+                                menusw.setTexture(offupgTexture);
+                            }
+                        }
+                    }
+                }
+
+                if (const auto* mouse =
+                        event->getIf<sf::Event::MouseButtonPressed>())
+                {
+                    if (mouse->button == sf::Mouse::Button::Left) {
+                        sf::Vector2f mousePos = {
+                            static_cast<float>(mouse->position.x),
+                            static_cast<float>(mouse->position.y)
+                        };
+
+                        if (timecap.getGlobalBounds().contains(mousePos) && apples >= tcc && !isupg) {
+                            apples -= tcc;
+                            tcc *= 4;
+                            occ++;
+                            oc += 3600;
+                            timecText.setString("Increase OC: " + formatNumber(tcc));
+                            tccText.setString("x" + formatNumber(occ));
                         }
                     }
                 }
@@ -734,35 +885,6 @@ int main() {
                     }
                 }
             }
-            if (const auto* mouse =
-                        event->getIf<sf::Event::MouseButtonPressed>())
-            {
-                if (mouse->button == sf::Mouse::Button::Left) {
-                    sf::Vector2f mousePos = {
-                        static_cast<float>(mouse->position.x),
-                        static_cast<float>(mouse->position.y)
-                    };
-
-                    if (secbtn3.getGlobalBounds().contains(mousePos) && apples >= afcc) {
-                        if (ftfc == 2) {
-                            ftfc = 1;
-                        } else if (ftfc == 1) {
-                            ftfc = 0;
-                        }
-                        if (ftfc == 1) {
-                            bg.setTexture(bg4Texture);
-                        }
-                        aps += 20;
-                        apples -= afcc;
-                        afcc += 20000;
-                        fcc++;
-                        appleText.setString("Apples: " + formatNumber(apples));
-                        sb3Text.setString("Apple Factory: " + formatNumber(afcc));
-                        apsText.setString("Apples per second: " + formatNumber(aps));
-                        fccText.setString("x" + formatNumber(fcc));
-                    }
-                }
-            }
             float time = clock.getElapsedTime().asSeconds();
             float rotation = std::sin(time * 2.f) * 10.f;
             apple.setRotation(sf::degrees(rotation));
@@ -789,22 +911,29 @@ int main() {
         window.draw(apsText);
         window.draw(apcText);
         window.draw(menu);
-        window.draw(clickbtn1);
-        window.draw(cb1Text);
-        window.draw(jcText);
-        window.draw(secbtn1);
-        window.draw(sb1Text);
-        window.draw(tcText);
-        window.draw(secbtn2);
-        window.draw(sb2Text);
-        window.draw(fcText);
-        window.draw(clickbtn2);
-        window.draw(cb2Text);
-        window.draw(pcText);
-        window.draw(secbtn3);
-        window.draw(sb3Text);
-        window.draw(fccText);
+        if (isupg) {
+            window.draw(clickbtn1);
+            window.draw(cb1Text);
+            window.draw(jcText);
+            window.draw(secbtn1);
+            window.draw(sb1Text);
+            window.draw(tcText);
+            window.draw(secbtn2);
+            window.draw(sb2Text);
+            window.draw(fcText);
+            window.draw(clickbtn2);
+            window.draw(cb2Text);
+            window.draw(pcText);
+            window.draw(secbtn3);
+            window.draw(sb3Text);
+            window.draw(fccText);
+        } else {
+            window.draw(timecap);
+            window.draw(timecText);
+        }
         window.draw(settbtn);
+        window.draw(menut);
+        window.draw(menusw);
         if (isdiagon) {
             float ddt = dlgClock.restart().asSeconds();
             float speed = 1200.f;
@@ -854,7 +983,6 @@ int main() {
                 fnt = 255;
             }
         }
-
 
         window.display();
     }
